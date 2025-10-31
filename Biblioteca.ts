@@ -13,7 +13,7 @@ class Livro{
         autor : string,
         editora : string,
         anoPublicacao : number,
-        disonibilidade : boolean
+        disonibilidade : boolean = true
     )
     /* O onstrutor criado é método especial chamado automaticamente quando se usarmos new Livro(...) por exemplo e serve para inicializar os atributos do objeto acima
     */
@@ -27,8 +27,26 @@ class Livro{
     this.atributo refere-se ao atributo do objeto que está sendo criado
     atributo refere-se ao parâmetro passado para o construtor
     */
+    
+
+emprestar(): void {
+    if (this.disonibilidade) {
+        this.disonibilidade = false;
+        console.log(`O livro "${this.titulo}" é seu "Até Vc Devolver ".`);
+    } else {
+        console.log(`Livro "${this.titulo}"já está emprestado.`);
+    }
+  }
+devolver(): void {
+    if (!this.disonibilidade) {
+        this.disonibilidade = true;
+        console.log(`Livro Devolvido "${this.titulo}".`);
+    } else {
+        console.log(`Nao é possivel devolver "${this.titulo}" não estava emprestado.`);
+        }
+    }
 }
-const livro1 = new Livro("Dom Casmurro", "Machado de Assis", "Principis", 1899, true);
+/*const livro1 = new Livro("Dom Casmurro", "Machado de Assis", "Principis", 1899, true);
 console.log(livro1);
 //console.log(***********)
 const livro2 = new Livro("1984", "George Orwell", "Companhia das Letras", 1949, false);
@@ -38,3 +56,10 @@ console.log(livro2.disonibilidade);
 /*
 BLOCO PARA TESTE.
 */
+const livro1 = new Livro("Dom Casmurro", "Machado de Assis", "Principis", 1899);
+
+
+livro1.emprestar(); // Empresta com sucesso
+livro1.emprestar(); // Tenta emprestar de novo (erro lógico)
+livro1.devolver();  // Devolve com sucesso
+livro1.devolver();  // Tenta devolver novamente (aviso)
