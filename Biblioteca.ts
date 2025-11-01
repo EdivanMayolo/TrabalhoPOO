@@ -30,11 +30,15 @@ class Livro{
 //Validação de disponibilidade do livro atraves de IF 
 // Marca o livro como indisponível em caso de emprestimo(this.disonibilidade = false).
 public emprestar(membro: Membro): void {
+    const JaTemOlivro = membro.livrosEmprestados.includes(this);
+    if (JaTemOlivro){
+        console.log(`Você ${membro.nome} já possui esse mesmo livro "${this.titulo}".`);
+    }
     if (this.disonibilidade) {
         this.disonibilidade = false;
         membro.livrosEmprestados.push(this);
         this.membroUsando = membro;
-        console.log(`O livro "${this.titulo}" é seu ${membro.nome} Até Vc Devolver.`);
+        console.log(`O livro "${this.titulo}" é seu ${membro.nome}... Até Vc Devolver.`);
     } else {
         console.log(`Livro "${this.titulo}"já está emprestado.`);
     }
@@ -47,13 +51,16 @@ public devolver(): void {
         this.disonibilidade = true;
         this.membroUsando.livrosEmprestados = 
             this.membroUsando.livrosEmprestados.filter(livro => livro !== this);
+        // this.membroUsando = undefined!;
+        console.log(`Livro Devolvido "${this.titulo} Obrigado ${this.membroUsando.nome}!!".`);
         this.membroUsando = undefined!;
-        console.log(`Livro Devolvido "${this.titulo}".`);
     } else {
-        console.log(`Nao é possivel devolver "${this.titulo}" não estava emprestado.`);
+        console.log(`Nao é possivel devolver "${this.titulo}" pois não esta emprestado.`);
         }
     }
 }
+
+//Criado o objeto Membro com seus atributos e construtor
 class Membro{
     public nome : string;
     public identificacao : number;
@@ -70,40 +77,25 @@ class Membro{
     }
 }
 
-/*
-BLOCO PARA TESTE.
-/*const livro1 = new Livro("Dom Casmurro", "Machado de Assis", "Principis", 1899, true);
-console.log(livro1);
-//console.log(***********)
-const livro2 = new Livro("1984", "George Orwell", "Companhia das Letras", 1949, false);
-console.log(livro2.titulo); 
-console.log(livro2.autor);
-console.log(livro2.disonibilidade); */
+/*BLOCO PARA TESTE.*/
 
-/*const livro1 = new Livro("Dom Casmurro", "Machado de Assis", "Principis", 1899);
-livro1.emprestar(); // Empresta com sucesso
-livro1.emprestar(); // Tenta emprestar de novo (erro lógico)
-livro1.devolver();  // Devolve com sucesso
-livro1.devolver();  // Tenta devolver novamente (aviso)*/
-
-
-//Criado o objeto Membro com seus atributos e construtor
 const membro1 = new Membro("Edivan Mayolo", 12345);
 const membro2 = new Membro("João Pedro", 98765);
 const membro3 = new Membro("Leide Daiane", 56789);
-//console.log(membro1);*/
+
 
 const livro1 = new Livro("Dom Casmurro", "Machado de Assis", "Principis", 1899);
 const livro2 = new Livro("Casmurro", "Assis", "Principis", 1899);
-const livro3 = new Livro("1984", "George Orwell", "Companhia das Letras", 1949);
-const livro4 = new Livro("2001", "Autor Desconhecido", "O mundo é uma bola de Golfe:", 1949);
+const livro3 = new Livro("Companhia das Letras", "George Orwell", "Papel" , 1949);
+const livro4 = new Livro( "O mundo é uma bola de Golfe:", "Autor Desconhecido","Matrix", 1949);
+//BLOCO PARA TESTE.
 
 //Validações do devolver e do emprestar
 //Teste 1
-/*livro1.devolver();
-livro2.devolver();
-livro3.devolver();
-livro4.devolver();*/
+/*livro1.devolver();//MSG que não está emprestado
+livro2.devolver();//MSG que não está emprestado
+livro3.devolver();//MSG que não está emprestado
+livro4.devolver();*///MSG que não está emprestado
 
 //Teste 2
 /*livro1.emprestar(membro1);
@@ -113,12 +105,38 @@ livro4.emprestar(membro2);
 livro1.emprestar(membro1);*/
 
 //Teste 3
+/*livro1.emprestar(membro2);//João Pedro pega Dom Casmurro
+livro1.emprestar(membro3) //já está emprestado
+livro4.emprestar(membro2);//João Pedro pega O mundo é uma bola de Golfe:
+livro1.devolver();//faz a devolução
+livro1.devolver();*///MSG que não está emprestado
 
+//Teste 4
+/*livro4.emprestar(membro2)
 livro4.devolver();
+livro4.emprestar(membro1);
+livro4.devolver();
+livro4.emprestar(membro3);
+livro4.emprestar(membro2);//MSG que já está emprestado
+livro4.emprestar(membro3);//MSG que já está emprestado
+console.log(membro3)
+console.log(membro1)
+console.log(membro2)*/
+
+//Teste 5
+livro3.devolver();//MSG que não está emprestado
+livro3.emprestar(membro1);//Edivan Mayolo pega Companhia das Letras
+livro3.emprestar(membro3);//MSG que já está emprestado
+livro2.devolver();//MSG que não está emprestado
+livro3.emprestar(membro3);//MSG que já está emprestado
+console.log(membro1)
+console.log(membro3)
+
+/*livro4.devolver();
 
 
 livro1.emprestar(membro2);
-livro1.devolver();
+livro1.devolver();*/
 
 
 /*livro2.emprestar(membro1);
