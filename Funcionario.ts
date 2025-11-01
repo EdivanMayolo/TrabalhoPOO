@@ -34,3 +34,26 @@ abstract class Funcionario {
     //seu próprio cálculo de salário.
     abstract calcularSalario(): number;
 }
+
+/*
+-----------CLASSES DERIVADAS ---------------- 
+*/
+//Gerente herda de Funcionario
+class Gerente extends Funcionario {
+    private bonus: number;
+
+    constructor(
+        nome: string, 
+        salario: number, 
+        identificacao: string,
+        bonus: number) 
+        {
+        super(nome, salario, identificacao);
+        this.bonus = bonus;
+    }
+    //Ganha salário + bônus fixo
+    calcularSalario(): number {
+        return this.getSalario() + this.bonus;
+    }
+}
+
