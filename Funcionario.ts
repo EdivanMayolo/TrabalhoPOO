@@ -74,4 +74,17 @@ class Desenvolvedor extends Funcionario {
         return this.getSalario() + this.adicionalPorProjeto;
     }
 }
+class Estagiario extends Funcionario {
 
+    constructor(
+        nome: string, 
+        salario: number, 
+        identificacao: string) 
+        {
+        super(nome, salario, identificacao);
+    }
+    //Ganha apenas o salário base
+    calcularSalario(): number {
+        return this.getSalario();
+    }
+}
