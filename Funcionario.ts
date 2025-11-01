@@ -56,4 +56,22 @@ class Gerente extends Funcionario {
         return this.getSalario() + this.bonus;
     }
 }
+//Desenvolvedor herda de Funcionario
+class Desenvolvedor extends Funcionario {
+    private adicionalPorProjeto: number;
+
+    constructor(
+        nome: string, 
+        salario: number, 
+        identificacao: string,
+        adicionalPorProjeto: number) 
+        {
+        super(nome, salario, identificacao);
+        this.adicionalPorProjeto = adicionalPorProjeto;
+    }
+    //Ganha salário + adicional por projeto
+    calcularSalario(): number {
+        return this.getSalario() + this.adicionalPorProjeto;
+    }
+}
 
