@@ -1,8 +1,12 @@
+//Classe Abstrata Funcionario, que servira para herança em outras classes de funcionários.
+
 abstract class Funcionario {
+    //Atributos privados podem ser acessados apenas dentro da própria classe.
+    //Atributos encapsulados.
     private nome: string
     private salario: number
     private identificacao: string
-
+    //Construtor para inicializar os atributos da classe Funcionario.
     constructor(
         nome: string, 
         salario: number, 
@@ -12,6 +16,7 @@ abstract class Funcionario {
         this.salario = salario
         this.identificacao = identificacao;
     }
+    //Métodos Getters para acessar os atributos privados acima.
     getNome(): string {
         return this.nome;
     }
@@ -24,6 +29,8 @@ abstract class Funcionario {
     mostrarDetalhes(): void {
         console.log(`Nome: ${this.nome}, Salário: ${this.salario}, Identificação: ${this.identificacao}`);
     }
-
+    //Método abstrato de calcular salário
+    //que obrigará as classes filhas a implemntar 
+    //seu próprio cálculo de salário.
     abstract calcularSalario(): number;
 }
