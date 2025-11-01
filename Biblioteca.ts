@@ -1,6 +1,5 @@
- /*Bloco de declaração do molde/receita
-    enquanto os atribitos são os ingredientes do molde/receita    
-*/
+//Classe Membro: abstração de um membro da biblioteca,
+// com atributos e construtor que inicializam o objeto.
 class Livro{
     public titulo : string;
     public autor : string;
@@ -61,6 +60,7 @@ public devolver(): void {
 }
 
 //Criado o objeto Membro com seus atributos e construtor
+//Encapsulamento e abstração dos objetos Membro
 class Membro{
     public nome : string;
     public identificacao : number;
@@ -75,19 +75,20 @@ class Membro{
        this.identificacao = identificacao;
        this.livrosEmprestados = []; 
     }
+    //método chama Livro.emprestar e Livro decide se pode ou não emprestar(Encapsulamento)
     public pegarLivrosEmprestados(livro: Livro): void {
         console.log(`${this.nome} está querendo pegar o livro "${livro.titulo}".`);
         livro.emprestar(this);
     }
-
+    //método
     public devolverLivrosEmprestados(livro: Livro): void {
         console.log(`${this.nome} está querendo devolver o livro "${livro.titulo}".`);
         livro.devolver();
     }
 }
 
-/*BLOCO PARA TESTE.*/
-
+//Instanciando objetos Membro e Livro
+//Abstração dos objetos das classes criadas acima(Membro e Livro)
 const membro1 = new Membro("Edivan Mayolo", 12345);
 const membro2 = new Membro("João Pedro", 98765);
 const membro3 = new Membro("Leide Daiane", 56789);
@@ -98,8 +99,12 @@ const livro2 = new Livro("Casmurro", "Assis", "Principis", 1899);
 const livro3 = new Livro("Companhia das Letras", "George Orwell", "Papel" , 1949);
 const livro4 = new Livro( "O mundo é uma bola de Golfe:", "Autor Desconhecido","Matrix", 1949);
 //BLOCO PARA TESTE.
+console.log("\n=== Objetos instanciados com sucesso ===");
+console.log(livro1, livro2, livro3, livro4);
+console.log(membro1, membro2, membro3);
 
 //Validações do devolver e do emprestar
+
 //Teste 1
 /*livro1.devolver();//MSG que não está emprestado
 livro2.devolver();//MSG que não está emprestado
@@ -141,5 +146,5 @@ livro3.emprestar(membro3);//MSG que já está emprestado
 console.log(membro2)
 console.log(membro3)*/
 //membro1.pegarLivrosEmprestados(livro1);
-membro1.devolverLivrosEmprestados(livro2);
+//membro1.devolverLivrosEmprestados(livro2);
 
