@@ -75,6 +75,15 @@ class Membro{
        this.identificacao = identificacao;
        this.livrosEmprestados = []; 
     }
+    public pegarLivrosEmprestados(livro: Livro): void {
+        console.log(`${this.nome} está querendo pegar o livro "${livro.titulo}".`);
+        livro.emprestar(this);
+    }
+
+    public devolverLivrosEmprestados(livro: Livro): void {
+        console.log(`${this.nome} está querendo devolver o livro "${livro.titulo}".`);
+        livro.devolver();
+    }
 }
 
 /*BLOCO PARA TESTE.*/
@@ -124,29 +133,13 @@ console.log(membro1)
 console.log(membro2)*/
 
 //Teste 5
-livro3.devolver();//MSG que não está emprestado
-livro3.emprestar(membro1);//Edivan Mayolo pega Companhia das Letras
+/*livro3.devolver();//MSG que não está emprestado
+livro3.emprestar(membro2);//Edivan Mayolo pega Companhia das Letras
 livro3.emprestar(membro3);//MSG que já está emprestado
 livro2.devolver();//MSG que não está emprestado
 livro3.emprestar(membro3);//MSG que já está emprestado
-console.log(membro1)
-console.log(membro3)
+console.log(membro2)
+console.log(membro3)*/
+//membro1.pegarLivrosEmprestados(livro1);
+membro1.devolverLivrosEmprestados(livro2);
 
-/*livro4.devolver();
-
-
-livro1.emprestar(membro2);
-livro1.devolver();*/
-
-
-/*livro2.emprestar(membro1);
-
-
-livro1.emprestar(membro1);
-// console.log(livro1)
-livro1.devolver();
-console.log(membro1.livrosEmprestados);
-livro2.devolver()
-console.log(membro1.livrosEmprestados);
-// console.log(livro1)
-livro1.emprestar(membro1);*/
