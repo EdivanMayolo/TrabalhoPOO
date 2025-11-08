@@ -41,7 +41,6 @@ abstract class Funcionario {
 //Gerente herda de Funcionario
 class Gerente extends Funcionario {
     private bonus: number;
-
     constructor(
         nome: string, 
         salario: number, 
@@ -53,7 +52,8 @@ class Gerente extends Funcionario {
     }
     //Ganha salário + bônus fixo
     calcularSalario(): number {
-        return this.getSalario() + this.bonus;
+        // return this.getSalario() + this.bonus;
+        return this.getSalario() + (this.getSalario() * 0.20);
     }
 }
 //Desenvolvedor herda de Funcionario
@@ -71,9 +71,13 @@ class Desenvolvedor extends Funcionario {
     }
     //Ganha salário + adicional por projeto
     calcularSalario(): number {
-        return this.getSalario() + this.adicionalPorProjeto;
+        // add bunus para cada projeto, com 10% em cima do salario base 
+        //para cada projeto
+        const bonus = this.getSalario() * 0.10 * this.adicionalPorProjeto;
+        return this.getSalario() + bonus;
     }
 }
+
 class Estagiario extends Funcionario {
 
     constructor(
@@ -88,3 +92,29 @@ class Estagiario extends Funcionario {
         return this.getSalario();
     }
 }
+//Cada instância chama seu respectivo construtor, passando os parâmetros exigidos
+//Gerente, Desenvolvedor e Estagiário são todos do tipo Funcionario
+//Usando polimorfismo dentro do array
+const funcionarios: Funcionario[] = [
+    new Gerente("Leide", 8000, "Ger1", 1500),
+    new Desenvolvedor("Edivan", 5000, "Dev1", 1),
+    new Estagiario("João Pedro", 2000, "Est1")
+];
+
+
+// console.log(`Nome: ${funcionarios.getNome()} | Salário Calculado: R$ ${funcionarios.calcularSalario().toFixed(2)}`);
+
+// for (const funcionario of funcionarios) {
+//     console.log(`Nome: ${funcionario.getNome()},Cargo: ${funcionario.getIdentificacao()}, Salário Calculado: R$ ${funcionario.calcularSalario().toFixed(2)}`);
+//     //console.log(`Identificação: ${funcionario.getIdentificacao()}`);
+// }
+for (const funcionario of funcionarios) {
+    console.log("--------------------------------------------------");
+    console.log(`Cargo: ${funcionario.constructor.name}`);
+    console.log(`Nome: ${funcionario.getNome()}`);
+    console.log(`Identificação: ${funcionario.getIdentificacao()}`);
+    console.log(`Salário base: R$ ${funcionario.getSalario().toFixed(2)}`);
+    console.log(`Salário calculado (polimórfico): R$ ${funcionario.calcularSalario().toFixed(2)}`);
+}
+console.log("--------------------------------------------------");
+
