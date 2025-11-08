@@ -100,21 +100,9 @@ const funcionarios: Funcionario[] = [
     new Desenvolvedor("Edivan", 5000, "Dev1", 1),
     new Estagiario("João Pedro", 2000, "Est1")
 ];
-
-
-// console.log(`Nome: ${funcionarios.getNome()} | Salário Calculado: R$ ${funcionarios.calcularSalario().toFixed(2)}`);
-
-// for (const funcionario of funcionarios) {
-//     console.log(`Nome: ${funcionario.getNome()},Cargo: ${funcionario.getIdentificacao()}, Salário Calculado: R$ ${funcionario.calcularSalario().toFixed(2)}`);
-//     //console.log(`Identificação: ${funcionario.getIdentificacao()}`);
-// }
+//for para percorrer o array de funcionários
 for (const funcionario of funcionarios) {
-    console.log("--------------------------------------------------");
-    console.log(`Cargo: ${funcionario.constructor.name}`);
-    console.log(`Nome: ${funcionario.getNome()}`);
-    console.log(`Identificação: ${funcionario.getIdentificacao()}`);
-    console.log(`Salário base: R$ ${funcionario.getSalario().toFixed(2)}`);
-    console.log(`Salário calculado (polimórfico): R$ ${funcionario.calcularSalario().toFixed(2)}`);
+    console.log(`Nome: ${funcionario.getNome()},Cargo: ${funcionario.getIdentificacao()}, Salário Calculado: R$ ${funcionario.calcularSalario().toFixed(2)}`);
+    //console.log(`Identificação: ${funcionario.getIdentificacao()}`);
 }
-console.log("--------------------------------------------------");
 
