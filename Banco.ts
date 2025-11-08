@@ -40,3 +40,7 @@ class ContaBancaria{
         return this.titular;
     }
 }
+
+interface MeioPagamento{
+    processarPagamento(valor: number): void;
+}
