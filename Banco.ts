@@ -44,3 +44,28 @@ class ContaBancaria{
 interface MeioPagamento{
     processarPagamento(valor: number): void;
 }
+class CartãoCredito implements MeioPagamento{
+    private limiteDisponivel: number;
+
+    constructor(limiteInicial: number){
+        if (limiteInicial <= 0){
+            throw new Error ("O limite inicial do cartão de crédito deve ser maior que zero.");
+            }
+            this.limiteDisponivel = limiteInicial;
+        }
+
+    public processarPagamento(valor: number): void {
+        if (valor <=0){
+            throw new Error("Valor inválido para pagamento com cartão de crédito.");
+        }
+        if (valor > this.limiteDisponivel) {
+            throw new Error("Limite insuficiente no cartão de crédito.");
+        }
+        this.limiteDisponivel -= valor;
+        console.log(`Pagamento de R$ ${valor.toFixed(2)} realizado com Cartão de Crédito.`);
+        }
+        
+    public consultarLimite(): number {
+    return this.limiteDisponivel;
+  }
+}
