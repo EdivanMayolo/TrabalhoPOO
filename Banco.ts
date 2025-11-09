@@ -13,7 +13,6 @@ class ContaBancaria{
             this.historico = [];
         }
 //Métodos usando Abstração
-
     public transferir(valor: number): void{
         //validação para evitar valores negativos ou nulos
         if (valor<= 0){
@@ -47,7 +46,8 @@ interface MeioPagamento{
 //Implementação da Interface
 //Métodos utilizados abaixo
 //Encapsulamento usando Private nos atributos
-//
+//Polimorfismo -> Varias classes com o mesmo método
+//Mas com comportamentos diferentes
 class CartãoCredito implements MeioPagamento{
     private limiteDisponivel: number;
 
@@ -57,7 +57,7 @@ class CartãoCredito implements MeioPagamento{
             }
             this.limiteDisponivel = limiteInicial;
         }
-        //validações para valores
+        //validações para valores e limites 
     public processarPagamento(valor: number): void {
         if (valor <=0){
             throw new Error("Valor inválido para pagamento com cartão de crédito.");
@@ -82,7 +82,7 @@ class CartaoDebito implements MeioPagamento {
     }
     this.saldoConta = saldoInicial;
   }
-
+  //Validação para valores e Saldo
   public processarPagamento(valor: number): void {
     if (valor <= 0) {
       throw new Error("Valor inválido para pagamento com cartão de débito.");
@@ -100,3 +100,38 @@ class CartaoDebito implements MeioPagamento {
     return this.saldoConta;
   }
 }
+class BoletoBancario implements MeioPagamento {
+  private codigoBarras: string | null = null;
+  private pago: boolean = false;
+
+  public processarPagamento(valor: number): void {
+    if (valor <= 0) {
+      throw new Error("Valor inválido para geração de boleto.");
+    }
+
+    // Simula geração de código de barras
+    this.codigoBarras = "34191." + Math.floor(Math.random() * 99999999999);
+    this.pago = false;
+
+    console.log(`Boleto gerado no valor de R$ ${valor.toFixed(2)}.`);
+    console.log(`Código de barras: ${this.codigoBarras}`);
+  }
+
+  public confirmarPagamento(): void {
+    if (!this.codigoBarras) {
+      throw new Error("Nenhum boleto foi gerado para pagamento.");
+    }
+
+    if (this.pago) {
+      throw new Error("Este boleto já foi pago anteriormente.");
+    }
+
+    this.pago = true;
+    console.log("Pagamento do boleto confirmado com sucesso!");
+  }
+
+  public verificarStatus(): string {
+    return this.pago ? "Pago" : "Pendente";
+  }
+}
+
