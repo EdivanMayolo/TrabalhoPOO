@@ -135,3 +135,29 @@ class BoletoBancario implements MeioPagamento {
   }
 }
 
+class Pix implements MeioPagamento {
+  private chavePix: string;
+
+  constructor(chavePix: string) {
+    if (!chavePix || chavePix.trim() === "") {
+      throw new Error("A chave Pix é obrigatória e não pode ser vazia.");
+    }
+    this.chavePix = chavePix.trim();
+  }
+
+  public processarPagamento(valor: number): void {
+    if (valor <= 0) {
+      throw new Error("Valor inválido para pagamento via Pix.");
+    }
+
+    if (!this.chavePix) {
+      throw new Error("Chave Pix não encontrada.");
+    }
+
+    console.log(`Pagamento de R$ ${valor.toFixed(2)} realizado via Pix para a chave: ${this.chavePix}`);
+  }
+
+  public getChavePix(): string {
+    return this.chavePix;
+  }
+}
