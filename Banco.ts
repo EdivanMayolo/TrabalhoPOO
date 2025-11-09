@@ -44,6 +44,10 @@ class ContaBancaria{
 interface MeioPagamento{
     processarPagamento(valor: number): void;
 }
+//Implementação da Interface
+//Métodos utilizados abaixo
+//Encapsulamento usando Private nos atributos
+//
 class CartãoCredito implements MeioPagamento{
     private limiteDisponivel: number;
 
@@ -53,7 +57,7 @@ class CartãoCredito implements MeioPagamento{
             }
             this.limiteDisponivel = limiteInicial;
         }
-
+        //validações para valores
     public processarPagamento(valor: number): void {
         if (valor <=0){
             throw new Error("Valor inválido para pagamento com cartão de crédito.");
@@ -64,8 +68,35 @@ class CartãoCredito implements MeioPagamento{
         this.limiteDisponivel -= valor;
         console.log(`Pagamento de R$ ${valor.toFixed(2)} realizado com Cartão de Crédito.`);
         }
-        
+
     public consultarLimite(): number {
     return this.limiteDisponivel;
+  }
+}
+class CartaoDebito implements MeioPagamento {
+  private saldoConta: number;
+
+  constructor(saldoInicial: number) {
+    if (saldoInicial < 0) {
+      throw new Error("O saldo inicial não pode ser negativo.");
+    }
+    this.saldoConta = saldoInicial;
+  }
+
+  public processarPagamento(valor: number): void {
+    if (valor <= 0) {
+      throw new Error("Valor inválido para pagamento com cartão de débito.");
+    }
+
+    if (valor > this.saldoConta) {
+      throw new Error("Saldo insuficiente para realizar o pagamento.");
+    }
+
+    this.saldoConta -= valor;
+    console.log(`Pagamento de R$ ${valor.toFixed(2)} realizado com Cartão de Débito.`);
+  }
+
+  public consultarSaldo(): number {
+    return this.saldoConta;
   }
 }
