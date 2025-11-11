@@ -13,8 +13,8 @@ class ContaBancaria{
         titular: string, 
         numeroConta: number,
         saldoInicial: number = 0,
-        banco: string = 'Banco TAL',
-        agencia : number = 1000
+        banco: string,
+        agencia : number 
       )
         { 
           //Inicializa os atributos quando o método é criado
@@ -43,7 +43,7 @@ class ContaBancaria{
     }
 
     public getHistorico(): string[] {
-        return this.historico;
+        return [...this.historico];
     }
     //métodos GETTERS para acessar as infos dos private( Encapsulamento)
     public getNumeroConta(): number {
@@ -60,6 +60,12 @@ class ContaBancaria{
     }
     public getStatus(): string {
     return this.status;
+  }
+   public setStatus(novoStatus: string): void {
+    if (!["ATIVA", "BLOQUEADA", "ENCERRADA"].includes(novoStatus)) {
+      throw new Error("Status inválido.");
+    }
+    this.status = novoStatus;
   }
 }
 //Abstração
@@ -97,9 +103,18 @@ class CartaoCredito implements MeioPagamento {
     console.log(`Pagamento de R$ ${valor.toFixed(2)} realizado com Cartão de Crédito (${this.bandeira}).`);
         }
 
-    public consultarLimite(): number {
-    return this.limiteDisponivel;
-  }
+      public getLimiteDisponivel(): number {
+        return this.limiteDisponivel;
+      }
+      public getBandeira(): string {
+        return this.bandeira;
+      }
+      public getNomeTitular(): string {
+        return this.nomeTitular;
+      }
+      public getValidade(): string {
+        return this.validade;
+      }
 }
 class CartaoDebito implements MeioPagamento {
   private numeroCartao: string;
@@ -128,10 +143,18 @@ class CartaoDebito implements MeioPagamento {
      this.saldoConta -= valor;
     console.log(`Pagamento de R$ ${valor.toFixed(2)} realizado com Cartão de Débito do banco ${this.banco}.`);
   }
-
-  public consultarSaldo(): number {
-    return this.saldoConta;
-  }
+    public getSaldoConta(): number {
+      return this.saldoConta;
+    }
+    public getBanco(): string {
+      return this.banco;
+    }
+    public getNomeTitular(): string {
+      return this.nomeTitular;
+    }
+    public getValidade(): string {
+      return this.validade;
+    }
 }
 class BoletoBancario implements MeioPagamento {
   private codigoBarras: string | null = null;
@@ -165,6 +188,22 @@ class BoletoBancario implements MeioPagamento {
     this.status = "PAGO";
     console.log("Pagamento do boleto confirmado.");
   }
+  // Getters de leitura
+  public getStatus(): string {
+    return this.status;
+  }
+  public getCodigoBarras(): string | null {
+    return this.codigoBarras;
+  }
+  public getValor(): number {
+    return this.valor;
+  }
+  public getVencimento(): string {
+    return this.vencimento;
+  }
+  public getNomeSacado(): string {
+    return this.nomeSacado;
+  }
 }
 
 class Pix implements MeioPagamento {
@@ -188,4 +227,127 @@ class Pix implements MeioPagamento {
     console.log(`Pagamento de R$ ${valor.toFixed(2)} enviado via Pix para 
     ${this.nomeDestinatario} (${this.tipoChave}: ${this.chavePix}) no ${this.bancoDestino}.`);
   }
+   // Getters de leitura
+  public getChavePix(): string {
+    return this.chavePix;
+  }
+  public getTipoChave(): string {
+    return this.tipoChave;
+  }
+  public getBancoDestino(): string {
+    return this.bancoDestino;
+  }
+  public getNomeDestinatario(): string {
+    return this.nomeDestinatario;
+  }
 }
+//Isntanciando 4 contas bancarias
+
+//titular,número da conta,saldo inicial,banco,agencia
+const conta1 = new ContaBancaria("Leide",1001,1000,"Banco do Brasil",4015);
+const conta2 = new ContaBancaria("João Pedro",987417,25000,"Banco Caixa",9875)
+const conta3 = new ContaBancaria("Edivan",2300,18000,"Banco Sicredi",528919);
+const conta4 = new ContaBancaria("Fulano",5555,0,"Banco Seilá",1000);
+
+
+// número do cartão,nome no cartão,validade,limite disponível,bandeira
+//Cartão de Credito
+const cartaoCreditoConta1= new CartaoCredito(
+  "4111111111111111", "Leide","12/29",5000,"VISA");
+
+// saldo disponível no débito 1200
+//Cartão de Deboito
+const cartaoDebitoConta2 = new CartaoDebito("555-555-555-100","João Pedro","10/28",1200,"Master");
+
+//valor, vencimento,Sacado
+const boletoParaConta3 = new BoletoBancario(350,"2025-12-15","Edivan");
+
+// chave Pix,tipo de chave,banco destino,destinatário
+const pixParaFulano = new Pix("fulano@gmail.com","EMAIL","Banco Seilá","Fulano"              // destinatário
+);
+
+// console.log(`${conta1.getTitular()} | Conta ${conta1.getNumeroConta()} | Saldo: R$ ${conta1.getSaldo().toFixed(2)}`);
+// console.log(`${conta2.getTitular()} | Conta ${conta2.getNumeroConta()} | Saldo: R$ ${conta2.getSaldo().toFixed(2)}`);
+// console.log(`${conta3.getTitular()} | Conta ${conta3.getNumeroConta()} | Saldo: R$ ${conta3.getSaldo().toFixed(2)}`);
+// console.log(`${conta4.getTitular()} | Conta ${conta4.getNumeroConta()} | Saldo: R$ ${conta4.getSaldo().toFixed(2)}`);
+
+// ================================================
+// Passo 6 (versão enxuta): cenários + runner genérico
+// ================================================
+
+function brl(v: number) { return `R$ ${v.toFixed(2)}`; }
+function nowBR() { return new Date().toLocaleString("pt-BR"); }
+
+function executar(label: string, fn: () => void) {
+  try {
+    console.log(`[${nowBR()}] ${label}`);
+    fn();
+    console.log(`[OK] ${label}\n`);
+  } catch (e: any) {
+    console.error(`[ERRO] ${label} -> ${e.message}\n`);
+  }
+}
+
+function imprimirHistoricoConta(conta: ContaBancaria) {
+  console.log(`\n==== Histórico da Conta ${conta.getNumeroConta()} | Titular: ${conta.getTitular()} ====`);
+  const hist = conta.getHistorico();
+  if (!hist.length) { console.log("(sem movimentações)"); return; }
+  for (const linha of hist) console.log(linha);
+  console.log(`Saldo atual: ${brl(conta.getSaldo())}`);
+}
+
+// -------------------------
+// Cenários de simulação
+// -------------------------
+const cenarios: Array<() => void> = [
+  // 1) Crédito (sucesso e falha)
+  () => executar(`Cartão de Crédito: pagar ${brl(300)}`, () => {
+    cartaoCreditoConta1.processarPagamento(300);
+    console.log(`Limite restante: ${brl(cartaoCreditoConta1.getLimiteDisponivel())}`);
+  }),
+  () => executar(`Cartão de Crédito: pagar ${brl(6000)} acima do limite`, () => {
+    cartaoCreditoConta1.processarPagamento(6000); // deve falhar
+  }),
+
+  // 2) Débito (sucesso e falha)
+  () => executar(`Cartão de Débito: pagar ${brl(200)}`, () => {
+    cartaoDebitoConta2.processarPagamento(200);
+    console.log(`Saldo débito restante: ${brl(cartaoDebitoConta2.getSaldoConta())}`);
+  }),
+  () => executar(`Cartão de Débito: pagar ${brl(2000)} sem saldo`, () => {
+    cartaoDebitoConta2.processarPagamento(2000); // deve falhar
+  }),
+
+  // 3) Boleto (falha gerar, gerar ok, confirmar ok, confirmar duplicado)
+  () => executar(`Boleto: gerar ${brl(0)} (inválido)`, () => {
+    boletoParaConta3.processarPagamento(0); 
+  }),
+  () => executar(`Boleto: gerar ${brl(350)}`, () => {
+    boletoParaConta3.processarPagamento(350);
+  }),
+  () => executar(`Boleto: confirmar pagamento`, () => {
+    boletoParaConta3.confirmarPagamento();
+    conta3.transferir(350);
+  }),
+  () => executar(`Boleto: confirmar novamente (deve falhar)`, () => {
+    boletoParaConta3.confirmarPagamento();
+  }),
+
+  // 4) Pix (teste de falha e sucesso)
+  () => executar(`Pix: enviar ${brl(0)} (inválido)`, () => {
+    pixParaFulano.processarPagamento(0);
+  }),
+  () => executar(`Pix: enviar ${brl(150)} para conta4`, () => {
+    pixParaFulano.processarPagamento(150);
+    conta4.transferir(150);
+  }),
+];
+console.log("\n================ INÍCIO Do TESTE================\n");
+for (const cenario of cenarios) cenario();
+
+console.log("\n================ HISTÓRICOS ================");
+imprimirHistoricoConta(conta1);
+imprimirHistoricoConta(conta2);
+imprimirHistoricoConta(conta3); 
+imprimirHistoricoConta(conta4); 
+console.log("\n================ ACABOU ================\n");
