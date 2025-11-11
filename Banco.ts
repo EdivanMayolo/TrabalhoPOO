@@ -1,16 +1,30 @@
-//Classe usando Encapsulamento e Abstração
-//Com atributos privados
+//Classe usando Encapsulamento
+//Atributos privados
 class ContaBancaria{
+    private titular: string;
+    private numeroConta: number;
     private saldo: number; 
     private historico: string[] = [];
+    private banco: string;
+    private agencia : number;
+    private status : string;
         
     constructor(
-        private titular: string, 
-        private numeroConta: number,
-        saldoInicial: number = 0)
-        {
+        titular: string, 
+        numeroConta: number,
+        saldoInicial: number = 0,
+        banco: string = 'Banco TAL',
+        agencia : number = 1000
+      )
+        { 
+          //Inicializa os atributos quando o método é criado
+            this.titular = titular;
+            this.numeroConta = numeroConta;
             this.saldo = saldoInicial;
             this.historico = [];
+            this.banco = banco;
+            this.agencia = agencia;
+            this.status = "Ativa";
         }
 //Métodos usando Abstração
     public transferir(valor: number): void{
@@ -24,39 +38,53 @@ class ContaBancaria{
         //Coloca uma descrição no Histórico
         this.historico.push(`[${data}]Transferencia de R$ ${valor.toFixed(2)}`); 
     }
-    public Saldo(): number {
+    public getSaldo(): number {
         return this.saldo;
     }
 
-    public Historico(): string[] {
+    public getHistorico(): string[] {
         return this.historico;
     }
-    //métodos privados de Dados da conta
-    private NumeroConta(): number {
+    //métodos GETTERS para acessar as infos dos private( Encapsulamento)
+    public getNumeroConta(): number {
         return this.numeroConta;
     }
-    private Titular(): string {
+    public getTitular(): string {
         return this.titular;
     }
+    public getBanco(): string {
+    return this.banco;
+    }
+    public getAgencia(): number {
+    return this.agencia;    
+    }
+    public getStatus(): string {
+    return this.status;
+  }
 }
-
+//Abstração
+//Faz a definição de um 'Contrato'
 interface MeioPagamento{
     processarPagamento(valor: number): void;
 }
 //Implementação da Interface
 //Métodos utilizados abaixo
-//Encapsulamento usando Private nos atributos
 //Polimorfismo -> Varias classes com o mesmo método
 //Mas com comportamentos diferentes
-class CartãoCredito implements MeioPagamento{
-    private limiteDisponivel: number;
+class CartaoCredito implements MeioPagamento {
+  private numeroCartao: string;
+  private nomeTitular: string;
+  private validade: string;
+  private limiteDisponivel: number;
+  private bandeira: string;
 
-    constructor(limiteInicial: number){
-        if (limiteInicial <= 0){
-            throw new Error ("O limite inicial do cartão de crédito deve ser maior que zero.");
-            }
-            this.limiteDisponivel = limiteInicial;
-        }
+  constructor(numeroCartao: string, nomeTitular: string, validade: string, limiteInicial: number, bandeira: string) {
+    this.numeroCartao = numeroCartao;
+    this.nomeTitular = nomeTitular;
+    this.validade = validade;
+    this.limiteDisponivel = limiteInicial;
+    this.bandeira = bandeira;
+  }
         //validações para valores e limites 
     public processarPagamento(valor: number): void {
         if (valor <=0){
@@ -66,7 +94,7 @@ class CartãoCredito implements MeioPagamento{
             throw new Error("Limite insuficiente no cartão de crédito.");
         }
         this.limiteDisponivel -= valor;
-        console.log(`Pagamento de R$ ${valor.toFixed(2)} realizado com Cartão de Crédito.`);
+    console.log(`Pagamento de R$ ${valor.toFixed(2)} realizado com Cartão de Crédito (${this.bandeira}).`);
         }
 
     public consultarLimite(): number {
@@ -74,13 +102,18 @@ class CartãoCredito implements MeioPagamento{
   }
 }
 class CartaoDebito implements MeioPagamento {
+  private numeroCartao: string;
+  private nomeTitular: string;
+  private validade: string;
   private saldoConta: number;
+  private banco: string;
 
-  constructor(saldoInicial: number) {
-    if (saldoInicial < 0) {
-      throw new Error("O saldo inicial não pode ser negativo.");
-    }
+  constructor(numeroCartao: string, nomeTitular: string, validade: string, saldoInicial: number, banco: string) {
+    this.numeroCartao = numeroCartao;
+    this.nomeTitular = nomeTitular;
+    this.validade = validade;
     this.saldoConta = saldoInicial;
+    this.banco = banco;
   }
   //Validação para valores e Saldo
   public processarPagamento(valor: number): void {
@@ -92,8 +125,8 @@ class CartaoDebito implements MeioPagamento {
       throw new Error("Saldo insuficiente para realizar o pagamento.");
     }
 
-    this.saldoConta -= valor;
-    console.log(`Pagamento de R$ ${valor.toFixed(2)} realizado com Cartão de Débito.`);
+     this.saldoConta -= valor;
+    console.log(`Pagamento de R$ ${valor.toFixed(2)} realizado com Cartão de Débito do banco ${this.banco}.`);
   }
 
   public consultarSaldo(): number {
@@ -102,47 +135,49 @@ class CartaoDebito implements MeioPagamento {
 }
 class BoletoBancario implements MeioPagamento {
   private codigoBarras: string | null = null;
-  private pago: boolean = false;
+  private valor: number;
+  private vencimento: string;
+  private status: string;
+  private nomeSacado: string;
+
+  constructor(valor: number, vencimento: string, nomeSacado: string) {
+    this.valor = valor;
+    this.vencimento = vencimento;
+    this.nomeSacado = nomeSacado;
+    this.status = "PENDENTE";
+  }
 
   public processarPagamento(valor: number): void {
     if (valor <= 0) {
-      throw new Error("Valor inválido para geração de boleto.");
+      throw new Error("Valor inválido para geração do boleto.");
     }
 
     // Simula geração de código de barras
     this.codigoBarras = "34191." + Math.floor(Math.random() * 99999999999);
-    this.pago = false;
-
-    console.log(`Boleto gerado no valor de R$ ${valor.toFixed(2)}.`);
+    console.log(`Boleto gerado para ${this.nomeSacado}, valor R$ ${valor.toFixed(2)} com vencimento em ${this.vencimento}.`);
     console.log(`Código de barras: ${this.codigoBarras}`);
   }
 
   public confirmarPagamento(): void {
     if (!this.codigoBarras) {
-      throw new Error("Nenhum boleto foi gerado para pagamento.");
+      throw new Error("Nenhum boleto gerado para pagamento.");
     }
-
-    if (this.pago) {
-      throw new Error("Este boleto já foi pago anteriormente.");
-    }
-
-    this.pago = true;
-    console.log("Pagamento do boleto confirmado com sucesso!");
-  }
-
-  public verificarStatus(): string {
-    return this.pago ? "Pago" : "Pendente";
+    this.status = "PAGO";
+    console.log("Pagamento do boleto confirmado.");
   }
 }
 
 class Pix implements MeioPagamento {
   private chavePix: string;
+  private tipoChave: string;
+  private bancoDestino: string;
+  private nomeDestinatario: string;
 
-  constructor(chavePix: string) {
-    if (!chavePix || chavePix.trim() === "") {
-      throw new Error("A chave Pix é obrigatória e não pode ser vazia.");
-    }
-    this.chavePix = chavePix.trim();
+  constructor(chavePix: string, tipoChave: string, bancoDestino: string, nomeDestinatario: string) {
+    this.chavePix = chavePix;
+    this.tipoChave = tipoChave;
+    this.bancoDestino = bancoDestino;
+    this.nomeDestinatario = nomeDestinatario;
   }
 
   public processarPagamento(valor: number): void {
@@ -150,14 +185,7 @@ class Pix implements MeioPagamento {
       throw new Error("Valor inválido para pagamento via Pix.");
     }
 
-    if (!this.chavePix) {
-      throw new Error("Chave Pix não encontrada.");
-    }
-
-    console.log(`Pagamento de R$ ${valor.toFixed(2)} realizado via Pix para a chave: ${this.chavePix}`);
-  }
-
-  public getChavePix(): string {
-    return this.chavePix;
+    console.log(`Pagamento de R$ ${valor.toFixed(2)} enviado via Pix para 
+    ${this.nomeDestinatario} (${this.tipoChave}: ${this.chavePix}) no ${this.bancoDestino}.`);
   }
 }
