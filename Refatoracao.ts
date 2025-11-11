@@ -1,24 +1,53 @@
 // CÓDIGO PROPOSITALMENTE RUIM PARA ATIVIDADE DE REFATORAÇÃO
 // Sistema de Gerenciamento de Biblioteca
 
+//criação de interfaces para a classe BibliotecaManager, usando Abstração
+//para substiir any
+interface Livro {
+  id: number; titulo: string; autor: string; ano: number;
+  quantidade: number; disponiveis: number; categoria: string; preco: number;
+}
+interface Usuario {
+  id: number; nome: string; cpf: string; tipo: string; // "estudante" | "professor" | "comum"
+  ativo: boolean; multas: number; telefone: string;
+}
+interface Emprestimo {
+  id: number; usuarioId: number; livroId: number;
+  dataEmprestimo: Date; dataDevolucao: Date;
+  diasPermitidos: number; taxaMultaDiaria: number;
+  devolvido: boolean; tipo: string;
+  dataDevolucaoReal?: Date; multa?: number;
+}
+interface Reserva {
+  usuarioId: number; livroId: number; ativo: boolean;
+}
+//Encapsulamento, deixado todos os atributos privados
+//feito o usuo do _ para indicar campo interno
 class BibliotecaManager {
-  // Problema 1: Tudo público, sem encapsulamento
-  public livros: any[] = [];
-  public usuarios: any[] = [];
-  public emprestimos: any[] = [];
-  public reservas: any[] = [];
-  
+  private _livros: Livro[] = [];
+  private _usuarios: Usuario[] = [];
+  private _emprestimos: Emprestimo[] = [];
+  private _reservas: Reserva[] = [];
+//Getters de leitura 
+  public get livros(): Livro[] { return [...this._livros]; }
+  public get usuarios(): Usuario[] { return [...this._usuarios]; }
+  public get emprestimos(): Emprestimo[] { return [...this._emprestimos]; }
+  public get reservas(): Reserva[] { return [...this._reservas]; }
+
   constructor() {
-    // Problema 2: Dados hardcoded e misturados com lógica
-    this.livros.push({ id: 1, titulo: "Clean Code", autor: "Robert Martin", ano: 2008, quantidade: 3, disponiveis: 3, categoria: "tecnologia", preco: 89.90 });
-    this.livros.push({ id: 2, titulo: "1984", autor: "George Orwell", ano: 1949, quantidade: 2, disponiveis: 2, categoria: "ficcao", preco: 45.00 });
-    this.livros.push({ id: 3, titulo: "Sapiens", autor: "Yuval Harari", ano: 2011, quantidade: 4, disponiveis: 4, categoria: "historia", preco: 65.50 });
-    this.livros.push({ id: 4, titulo: "O Hobbit", autor: "Tolkien", ano: 1937, quantidade: 2, disponiveis: 2, categoria: "fantasia", preco: 55.00 });
-    
-    this.usuarios.push({ id: 1, nome: "Ana Silva", cpf: "12345678901", tipo: "estudante", ativo: true, multas: 0, telefone: "48999999999" });
-    this.usuarios.push({ id: 2, nome: "Carlos Santos", cpf: "98765432100", tipo: "professor", ativo: true, multas: 15.50, telefone: "48988888888" });
-    this.usuarios.push({ id: 3, nome: "Beatriz Costa", cpf: "11122233344", tipo: "comum", ativo: false, multas: 0, telefone: "48977777777" });
+    this._livros.push(
+      { id: 1, titulo: "Clean Code", autor: "Robert Martin", ano: 2008, quantidade: 3, disponiveis: 3, categoria: "tecnologia", preco: 89.90 },
+      { id: 2, titulo: "1984", autor: "George Orwell", ano: 1949, quantidade: 2, disponiveis: 2, categoria: "ficcao", preco: 45.00 },
+      { id: 3, titulo: "Sapiens", autor: "Yuval Harari", ano: 2011, quantidade: 4, disponiveis: 4, categoria: "historia", preco: 65.50 },
+      { id: 4, titulo: "O Hobbit", autor: "Tolkien", ano: 1937, quantidade: 2, disponiveis: 2, categoria: "fantasia", preco: 55.00 }
+    );
+    this._usuarios.push(
+      { id: 1, nome: "Ana Silva",      cpf: "12345678901", tipo: "estudante", ativo: true,  multas: 0,     telefone: "48999999999" },
+      { id: 2, nome: "Carlos Santos",  cpf: "98765432100", tipo: "professor", ativo: true,  multas: 15.50, telefone: "48988888888" },
+      { id: 3, nome: "Beatriz Costa",  cpf: "11122233344", tipo: "comum",     ativo: false, multas: 0,     telefone: "48977777777" }
+    );
   }
+//PAREI AQUI
   
   // Problema 3: Método gigante que faz TUDO
   public realizarEmprestimo(usuarioId: number, livroId: number, dias: number, tipoEmprestimo: string) {
@@ -364,20 +393,43 @@ class BibliotecaManager {
     }
     
     // Ordenar e mostrar top 3 (código ruim de propósito)
-    var ranking = [];
-    for (var livroId in contagemLivros) {
-      ranking.push({ id: livroId, count: contagemLivros[livroId] });
-    }
-    ranking.sort(function(a, b) { return b.count - a.count; });
+    // var ranking = [];
+    // for (var livroId in contagemLivros) {
+    //   ranking.push({ id: livroId, count: contagemLivros[livroId] });
+    // }
+    // ranking.sort(function(a, b) { return b.count - a.count; });
     
-    for (var i = 0; i < Math.min(3, ranking.length); i++) {
-      for (var j = 0; j < this.livros.length; j++) {
-        if (this.livros[j].id == ranking[i]?.id) {
-  console.log((i + 1) + ". " + this.livros[j].titulo + " (" + ranking[i]?.count + " empréstimos)");
+    // for (var i = 0; i < Math.min(3, ranking.length); i++) {
+    //   for (var j = 0; j < this.livros.length; j++) {
+    //     if (this.livros[j].id == ranking[i].id) {
+    //       console.log((i + 1) + ". " + this.livros[j].titulo + " (" + ranking[i].count + " empréstimos)");
+    //     }
+    //   }
+    // }
+
+// Ordenar e mostrar top 3
+var ranking = [];
+
+for (var livroId in contagemLivros) {
+  ranking.push({ id: livroId, count: contagemLivros[livroId] });
 }
 
-      }
+ranking.sort(function(a, b) {
+  return b.count - a.count;
+});
+
+for (var i = 0; i < Math.min(3, ranking.length); i++) {
+  const item = ranking[i];
+  if (!item) continue; // se estiver undefined, pula
+
+  for (var j = 0; j < this.livros.length; j++) {
+    if (this.livros[j].id === item.id) {
+      console.log(`${i + 1}. ${this.livros[j].titulo} (${item.count} empréstimos)`);
     }
+  }
+}
+
+  
     
     console.log("\n" + "=".repeat(60) + "\n");
   }
