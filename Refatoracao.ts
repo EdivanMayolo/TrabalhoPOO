@@ -47,7 +47,38 @@ class BibliotecaManager {
       { id: 3, nome: "Beatriz Costa",  cpf: "11122233344", tipo: "comum",     ativo: false, multas: 0,     telefone: "48977777777" }
     );
   }
-//PAREI AQUI
+//Encapsulamento - Busca mais segura
+  private findUsuarioById(id: number): Usuario | undefined {
+    return this._usuarios.find(u => u.id === id);
+  }
+//Encapsulamento - Busca mais segura
+  private findLivroById(id: number): Livro | undefined {
+    return this._livros.find(l => l.id === id);
+  }
+//Coesão || Contar empréstimos abertos
+  private contaEmprestimosAtivos(usuarioId: number): number {
+    return this._emprestimos.filter(e => e.usuarioId === usuarioId && !e.devolvido).length;
+  }
+//Polimorfismo por dados por tipo de usuário
+  private limitesPorTipo(tipo: string): { dias: number; multaDia: number; limite: number } {
+    if (tipo === "estudante") return { dias: 14, multaDia: 0.50, limite: 3 };
+    if (tipo === "professor") return { dias: 30, multaDia: 0.30, limite: 5 };
+    return { dias: 7, multaDia: 1.00, limite: 2 }; // comum
+  }
+//Encapsulamento + Abstração | validações + coesas para validação do usuario
+  private validarUsuario(usuario: Usuario | undefined): string | null {
+    if (!usuario) return "Usuário não encontrado!";
+    if (!usuario.ativo) return "Usuário inativo!";
+    if (usuario.multas > 0) return "Usuário possui multas pendentes de R$" + usuario.multas.toFixed(2);
+    return null;
+  }
+//Encapsulamento + Abstração | validações + coesas para validação do livro
+  private validarLivro(livro: Livro | undefined): string | null {
+    if (!livro) return "Livro não encontrado!";
+    if (livro.disponiveis <= 0) return "Livro indisponível no momento!";
+    return null;
+  }
+  //Aqui
   
   // Problema 3: Método gigante que faz TUDO
   public realizarEmprestimo(usuarioId: number, livroId: number, dias: number, tipoEmprestimo: string) {
