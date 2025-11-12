@@ -81,173 +81,81 @@ class BibliotecaManager {
   //Aqui
   
   // Problema 3: Método gigante que faz TUDO
-  public realizarEmprestimo(usuarioId: number, livroId: number, dias: number, tipoEmprestimo: string) {
+//Usando Abstraçao
+ public realizarEmprestimo(usuarioId: number, livroId: number, dias: number, tipoEmprestimo: string) {
     console.log("\n=== PROCESSANDO EMPRÉSTIMO ===");
-    
-    // Validação do usuário
-    console.log("Validando usuário...");
-    var usuario = null;
-    for (var i = 0; i < this.usuarios.length; i++) {
-      if (this.usuarios[i].id == usuarioId) {
-        usuario = this.usuarios[i];
-        break;
-      }
-    }
-    
-    if (usuario == null) {
-      console.log("ERRO: Usuário não encontrado!");
-      return;
-    }
-    
-    if (usuario.ativo == false) {
-      console.log("ERRO: Usuário inativo!");
-      return;
-    }
-    
-    if (usuario.multas > 0) {
-      console.log("ERRO: Usuário possui multas pendentes de R$" + usuario.multas);
-      return;
-    }
-    
-    // Validação do livro
-    console.log("Validando livro...");
-    var livro = null;
-    for (var i = 0; i < this.livros.length; i++) {
-      if (this.livros[i].id == livroId) {
-        livro = this.livros[i];
-        break;
-      }
-    }
-    
-    if (livro == null) {
-      console.log("ERRO: Livro não encontrado!");
-      return;
-    }
-    
-    if (livro.disponiveis <= 0) {
-      console.log("ERRO: Livro indisponível no momento!");
-      console.log("Deseja fazer uma reserva? (implementar depois)");
-      return;
-    }
-    
-    // Validação do tipo de empréstimo e cálculo de dias
-    var diasPermitidos = 0;
-    var taxaMultaDiaria = 0;
-    
-    if (tipoEmprestimo == "normal") {
-      console.log("Empréstimo normal selecionado");
-      if (usuario.tipo == "estudante") {
-        diasPermitidos = 14;
-        taxaMultaDiaria = 0.50;
-      } else if (usuario.tipo == "professor") {
-        diasPermitidos = 30;
-        taxaMultaDiaria = 0.30;
-      } else if (usuario.tipo == "comum") {
-        diasPermitidos = 7;
-        taxaMultaDiaria = 1.00;
-      }
-    } else if (tipoEmprestimo == "renovacao") {
-      console.log("Renovação selecionada");
-      if (usuario.tipo == "estudante") {
-        diasPermitidos = 7;
-        taxaMultaDiaria = 0.50;
-      } else if (usuario.tipo == "professor") {
-        diasPermitidos = 15;
-        taxaMultaDiaria = 0.30;
-      } else if (usuario.tipo == "comum") {
-        diasPermitidos = 3;
-        taxaMultaDiaria = 1.00;
-      }
-    } else if (tipoEmprestimo == "expresso") {
-      console.log("Empréstimo expresso (24h)");
-      diasPermitidos = 1;
-      taxaMultaDiaria = 5.00;
-      console.log("Taxa extra de R$2.00 será cobrada");
-    } else {
-      console.log("ERRO: Tipo de empréstimo inválido!");
-      return;
-    }
-    
+//Encapsulamento + Abstração
+    const usuario = this.findUsuarioById(usuarioId);
+    const erroU = this.validarUsuario(usuario);
+    if (erroU) { console.log("ERRO: " + erroU); return; }
+
+    const livro = this.findLivroById(livroId);
+    const erroL = this.validarLivro(livro);
+    if (erroL) { console.log("ERRO: " + erroL); return; }
+
+//Polimorfismo por dados
+    let diasPermitidos = 0;
+    let taxaMultaDiaria = 0;
+    if (tipoEmprestimo === "normal" || tipoEmprestimo === "renovacao") {
+      const base = this.limitesPorTipo(usuario!.tipo);
+      diasPermitidos = tipoEmprestimo === "normal" ? base.dias : Math.ceil(base.dias / 2);
+      taxaMultaDiaria = base.multaDia;
+    } else if (tipoEmprestimo === "expresso") {
+      diasPermitidos = 1; taxaMultaDiaria = 5.00;
+      console.log("Empréstimo expresso (24h). Taxa extra de R$2.00 será cobrada");
+    } else { console.log("ERRO: Tipo de empréstimo inválido!"); return; }
+
     if (dias > diasPermitidos) {
       console.log("ERRO: Período solicitado (" + dias + " dias) excede o permitido (" + diasPermitidos + " dias)");
       return;
     }
-    
-    // Verificar quantos livros o usuário já tem emprestado
-    console.log("Verificando limite de empréstimos...");
-    var emprestimosAtivos = 0;
-    for (var i = 0; i < this.emprestimos.length; i++) {
-      if (this.emprestimos[i].usuarioId == usuarioId && this.emprestimos[i].devolvido == false) {
-        emprestimosAtivos++;
-      }
-    }
-    
-    var limiteEmprestimos = 0;
-    if (usuario.tipo == "estudante") {
-      limiteEmprestimos = 3;
-    } else if (usuario.tipo == "professor") {
-      limiteEmprestimos = 5;
-    } else {
-      limiteEmprestimos = 2;
-    }
-    
-    if (emprestimosAtivos >= limiteEmprestimos) {
-      console.log("ERRO: Usuário já atingiu o limite de " + limiteEmprestimos + " empréstimos simultâneos!");
+
+    const ativos = this.contaEmprestimosAtivos(usuarioId);
+    const limite = this.limitesPorTipo(usuario!.tipo).limite;
+    if (ativos >= limite) {
+      console.log("ERRO: Usuário já atingiu o limite de " + limite + " empréstimos simultâneos!");
       return;
     }
-    
-    // Processar o empréstimo
-    console.log("Processando empréstimo...");
-    livro.disponiveis = livro.disponiveis - 1;
-    
-    var dataEmprestimo = new Date();
-    var dataDevolucao = new Date();
+// [Encapsulamento] atualização consistente do estoque
+    livro!.disponiveis -= 1;
+
+    const dataEmprestimo = new Date();
+    const dataDevolucao = new Date();
     dataDevolucao.setDate(dataDevolucao.getDate() + dias);
-    
-    var emprestimoId = this.emprestimos.length + 1;
-    
-    this.emprestimos.push({
-      id: emprestimoId,
-      usuarioId: usuarioId,
-      livroId: livroId,
-      dataEmprestimo: dataEmprestimo,
-      dataDevolucao: dataDevolucao,
-      diasPermitidos: dias,
-      taxaMultaDiaria: taxaMultaDiaria,
-      devolvido: false,
-      tipo: tipoEmprestimo
-    });
-    
-    // Enviar notificações
+//Fazendo uso de Associação(Cria o objeto Emprestimo ligando Usuario e Livro via seus IDs)
+    const emprestimoId = this._emprestimos.length + 1;
+//Usando composição(EMprestimo comeca a fazer parte da biblioteca)
+    const novo: Emprestimo = {
+      id: emprestimoId, usuarioId, livroId,
+      dataEmprestimo, dataDevolucao,
+      diasPermitidos: dias, taxaMultaDiaria, devolvido: false, tipo: tipoEmprestimo
+    };
+//Agregação(O emprestimo e 'agregado' à classe BibliotecaManager)
+    this._emprestimos.push(novo);
+//Impressão de EMPRESTIMOS
     console.log("Enviando notificações...");
-    console.log("Email para " + usuario.nome + ": Empréstimo realizado com sucesso!");
-    console.log("SMS para " + usuario.telefone + ": Livro '" + livro.titulo + "' deve ser devolvido até " + dataDevolucao.toLocaleDateString());
-    console.log("WhatsApp: Olá " + usuario.nome + ", seu empréstimo foi confirmado!");
-    
-    // Registrar no log do sistema
-    console.log("Registrando no log...");
+    console.log("Email para " + usuario!.nome + ": Empréstimo realizado com sucesso!");
+    console.log("SMS para " + usuario!.telefone + ": Livro '" + livro!.titulo + "' deve ser devolvido até " + dataDevolucao.toLocaleDateString());
+    console.log("WhatsApp: Olá " + usuario!.nome + ", seu empréstimo foi confirmado!");
     console.log("[LOG] " + dataEmprestimo + " - Empréstimo ID " + emprestimoId + " criado");
-    
-    // Atualizar estatísticas
-    console.log("Atualizando estatísticas...");
-    console.log("Total de empréstimos hoje: " + this.emprestimos.length);
-    
-    // Problema 4: Formatação misturada com lógica
+    console.log("Total de empréstimos hoje: " + this._emprestimos.length);
+
     console.log("\n╔════════════════════════════════════╗");
     console.log("║     COMPROVANTE DE EMPRÉSTIMO      ║");
     console.log("╠════════════════════════════════════╣");
     console.log("║ ID: " + emprestimoId);
-    console.log("║ Usuário: " + usuario.nome);
-    console.log("║ CPF: " + usuario.cpf);
-    console.log("║ Livro: " + livro.titulo);
-    console.log("║ Autor: " + livro.autor);
+    console.log("║ Usuário: " + usuario!.nome);
+    console.log("║ CPF: " + usuario!.cpf);
+    console.log("║ Livro: " + livro!.titulo);
+    console.log("║ Autor: " + livro!.autor);
     console.log("║ Data Empréstimo: " + dataEmprestimo.toLocaleDateString());
     console.log("║ Data Devolução: " + dataDevolucao.toLocaleDateString());
     console.log("║ Tipo: " + tipoEmprestimo);
-    console.log("║ Multa/dia atraso: R$" + taxaMultaDiaria);
+    console.log("║ Multa/dia atraso: R$" + taxaMultaDiaria.toFixed(2));
     console.log("╚════════════════════════════════════╝\n");
   }
-  
+//PAREI AQUI
+
   // Problema 5: Outro método gigante
   public realizarDevolucao(emprestimoId: number) {
     console.log("\n=== PROCESSANDO DEVOLUÇÃO ===");
