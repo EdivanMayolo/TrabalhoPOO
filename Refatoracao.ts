@@ -156,287 +156,172 @@ class BibliotecaManager {
   }
 //PAREI AQUI
 
-  // Problema 5: Outro método gigante
-  public realizarDevolucao(emprestimoId: number) {
+public realizarDevolucao(emprestimoId: number) {
     console.log("\n=== PROCESSANDO DEVOLUÇÃO ===");
-    
-    // Buscar empréstimo
-    var emprestimo = null;
-    for (var i = 0; i < this.emprestimos.length; i++) {
-      if (this.emprestimos[i].id == emprestimoId) {
-        emprestimo = this.emprestimos[i];
-        break;
-      }
-    }
-    
-    if (emprestimo == null) {
-      console.log("ERRO: Empréstimo não encontrado!");
-      return;
-    }
-    
-    if (emprestimo.devolvido == true) {
-      console.log("ERRO: Este livro já foi devolvido!");
-      return;
-    }
-    
-    // Buscar usuário
-    var usuario = null;
-    for (var i = 0; i < this.usuarios.length; i++) {
-      if (this.usuarios[i].id == emprestimo.usuarioId) {
-        usuario = this.usuarios[i];
-        break;
-      }
-    }
-    
-    // Buscar livro
-    var livro = null;
-    for (var i = 0; i < this.livros.length; i++) {
-      if (this.livros[i].id == emprestimo.livroId) {
-        livro = this.livros[i];
-        break;
-      }
-    }
-    
-    // Calcular multa por atraso
-    var dataAtual = new Date();
-    var dataDevolucao = new Date(emprestimo.dataDevolucao);
-    var diasAtraso = 0;
-    var multa = 0;
-    
-    if (dataAtual > dataDevolucao) {
-      diasAtraso = Math.floor((dataAtual.getTime() - dataDevolucao.getTime()) / (1000 * 60 * 60 * 24));
-      multa = diasAtraso * emprestimo.taxaMultaDiaria;
-      console.log("ATENÇÃO: Devolução com " + diasAtraso + " dia(s) de atraso!");
+
+    const emprestimo = this._emprestimos.find(e => e.id === emprestimoId);
+    if (!emprestimo) { console.log("ERRO: Empréstimo não encontrado!"); return; }
+    if (emprestimo.devolvido) { console.log("ERRO: Este livro já foi devolvido!"); return; }
+
+    const usuario = this.findUsuarioById(emprestimo.usuarioId);
+    const livro = this.findLivroById(emprestimo.livroId);
+    if (!usuario || !livro) { console.log("ERRO: Dados inconsistentes do empréstimo!"); return; }
+
+    const agora = new Date();
+    const atrasoDias = Math.max(0, Math.floor((agora.getTime() - emprestimo.dataDevolucao.getTime()) / 86400000));
+    const multa = atrasoDias > 0 ? atrasoDias * emprestimo.taxaMultaDiaria : 0;
+
+    if (multa > 0) {
+      console.log("ATENÇÃO: Devolução com " + atrasoDias + " dia(s) de atraso!");
       console.log("Multa calculada: R$" + multa.toFixed(2));
-      
-      usuario.multas = usuario.multas + multa;
-      
-      // Enviar notificação de multa
+      usuario.multas += multa;
       console.log("Enviando notificação de multa...");
       console.log("Email: Multa de R$" + multa.toFixed(2) + " aplicada");
       console.log("SMS: Você possui multa pendente");
     } else {
       console.log("Devolução dentro do prazo. Sem multas!");
     }
-    
-    // Atualizar empréstimo
+
     emprestimo.devolvido = true;
-    emprestimo.dataDevolucaoReal = dataAtual;
+    emprestimo.dataDevolucaoReal = agora;
     emprestimo.multa = multa;
-    
-    // Atualizar disponibilidade do livro
-    livro.disponiveis = livro.disponiveis + 1;
-    
-    // Verificar se há reservas para este livro
-    console.log("Verificando reservas...");
-    for (var i = 0; i < this.reservas.length; i++) {
-      if (this.reservas[i].livroId == livro.id && this.reservas[i].ativo == true) {
-        console.log("Há reservas pendentes para este livro!");
-        console.log("Notificando usuário da reserva...");
-        // Buscar usuário da reserva
-        for (var j = 0; j < this.usuarios.length; j++) {
-          if (this.usuarios[j].id == this.reservas[i].usuarioId) {
-            console.log("Email para " + this.usuarios[j].nome + ": Livro '" + livro.titulo + "' está disponível!");
-            break;
-          }
-        }
-      }
+
+    livro.disponiveis += 1;
+
+    // [Associação] reserva aponta para usuário e livro
+    const reservaPendente = this._reservas.find(r => r.livroId === livro.id && r.ativo);
+    if (reservaPendente) {
+      const uReserva = this.findUsuarioById(reservaPendente.usuarioId);
+      if (uReserva) console.log("Email para " + uReserva.nome + ": Livro '" + livro.titulo + "' está disponível!");
     }
-    
+
     console.log("\n╔════════════════════════════════════╗");
     console.log("║     COMPROVANTE DE DEVOLUÇÃO       ║");
     console.log("╠════════════════════════════════════╣");
     console.log("║ Usuário: " + usuario.nome);
     console.log("║ Livro: " + livro.titulo);
-    console.log("║ Data Devolução: " + dataAtual.toLocaleDateString());
-    console.log("║ Dias de Atraso: " + diasAtraso);
+    console.log("║ Data Devolução: " + agora.toLocaleDateString());
+    console.log("║ Dias de Atraso: " + atrasoDias);
     console.log("║ Multa: R$" + multa.toFixed(2));
     console.log("║ Total de multas pendentes: R$" + usuario.multas.toFixed(2));
     console.log("╚════════════════════════════════════╝\n");
   }
-  
-  // Problema 6: Método que faz múltiplas coisas
+
   public gerarRelatorioCompleto() {
     console.log("\n╔═══════════════════════════════════════════════════════╗");
     console.log("║           RELATÓRIO COMPLETO DA BIBLIOTECA            ║");
     console.log("╚═══════════════════════════════════════════════════════╝\n");
-    
-    // Estatísticas de livros
+
+    // --- ACERVO ---
     console.log("--- ACERVO DE LIVROS ---");
-    var totalLivros = 0;
-    var livrosDisponiveis = 0;
-    var valorTotal = 0;
-    
-    for (var i = 0; i < this.livros.length; i++) {
-      totalLivros = totalLivros + this.livros[i].quantidade;
-      livrosDisponiveis = livrosDisponiveis + this.livros[i].disponiveis;
-      valorTotal = valorTotal + (this.livros[i].preco * this.livros[i].quantidade);
-      
-      console.log("• " + this.livros[i].titulo + " - " + this.livros[i].autor);
-      console.log("  Disponíveis: " + this.livros[i].disponiveis + "/" + this.livros[i].quantidade);
-      console.log("  Categoria: " + this.livros[i].categoria + " | Valor: R$" + this.livros[i].preco);
+    let totalLivros = 0, livrosDisponiveis = 0, valorTotal = 0;
+    for (const l of this._livros) {
+      totalLivros += l.quantidade;
+      livrosDisponiveis += l.disponiveis;
+      valorTotal += l.preco * l.quantidade;
+      console.log("• " + l.titulo + " - " + l.autor);
+      console.log("  Disponíveis: " + l.disponiveis + "/" + l.quantidade);
+      console.log("  Categoria: " + l.categoria + " | Valor: R$" + l.preco);
     }
-    
     console.log("\nTotal de exemplares: " + totalLivros);
     console.log("Disponíveis: " + livrosDisponiveis);
     console.log("Emprestados: " + (totalLivros - livrosDisponiveis));
     console.log("Valor total do acervo: R$" + valorTotal.toFixed(2));
-    
-    // Estatísticas de usuários
+
+    // --- USUÁRIOS ---
     console.log("\n--- USUÁRIOS ---");
-    var usuariosAtivos = 0;
-    var totalMultas = 0;
-    
-    for (var i = 0; i < this.usuarios.length; i++) {
-      if (this.usuarios[i].ativo) usuariosAtivos++;
-      totalMultas = totalMultas + this.usuarios[i].multas;
-      
-      console.log("• " + this.usuarios[i].nome + " (" + this.usuarios[i].tipo + ")");
-      console.log("  Status: " + (this.usuarios[i].ativo ? "Ativo" : "Inativo"));
-      console.log("  Multas: R$" + this.usuarios[i].multas.toFixed(2));
+    let usuariosAtivos = 0, totalMultas = 0;
+    for (const u of this._usuarios) {
+      if (u.ativo) usuariosAtivos++;
+      totalMultas += u.multas;
+      console.log("• " + u.nome + " (" + u.tipo + ")");
+      console.log("  Status: " + (u.ativo ? "Ativo" : "Inativo"));
+      console.log("  Multas: R$" + u.multas.toFixed(2));
     }
-    
-    console.log("\nTotal de usuários: " + this.usuarios.length);
+    console.log("\nTotal de usuários: " + this._usuarios.length);
     console.log("Usuários ativos: " + usuariosAtivos);
     console.log("Total em multas: R$" + totalMultas.toFixed(2));
-    
-    // Estatísticas de empréstimos
+
+    // --- EMPRÉSTIMOS ---
     console.log("\n--- EMPRÉSTIMOS ---");
-    var emprestimosAtivos = 0;
-    var emprestimosAtrasados = 0;
-    var dataAtual = new Date();
-    
-    for (var i = 0; i < this.emprestimos.length; i++) {
-      if (this.emprestimos[i].devolvido == false) {
-        emprestimosAtivos++;
-        if (new Date(this.emprestimos[i].dataDevolucao) < dataAtual) {
-          emprestimosAtrasados++;
-        }
+    let ativos = 0, atrasados = 0;
+    const hoje = new Date();
+    for (const e of this._emprestimos) {
+      if (!e.devolvido) {
+        ativos++;
+        if (e.dataDevolucao < hoje) atrasados++;
       }
     }
-    
-    console.log("Total de empréstimos: " + this.emprestimos.length);
-    console.log("Empréstimos ativos: " + emprestimosAtivos);
-    console.log("Empréstimos atrasados: " + emprestimosAtrasados);
-    
-    // Ranking de livros mais emprestados
+    console.log("Total de empréstimos: " + this._emprestimos.length);
+    console.log("Empréstimos ativos: " + ativos);
+    console.log("Empréstimos atrasados: " + atrasados);
+
+//Parei aqui 
     console.log("\n--- TOP 3 LIVROS MAIS EMPRESTADOS ---");
-    var contagemLivros: any = {};
-    for (var i = 0; i < this.emprestimos.length; i++) {
-      var lid = this.emprestimos[i].livroId;
-      if (contagemLivros[lid]) {
-        contagemLivros[lid]++;
-      } else {
-        contagemLivros[lid] = 1;
-      }
+    const contagem: { [livroId: number]: number } = {};
+    for (const e of this._emprestimos) {
+      contagem[e.livroId] = (contagem[e.livroId] || 0) + 1;
     }
-    
-    // Ordenar e mostrar top 3 (código ruim de propósito)
-    // var ranking = [];
-    // for (var livroId in contagemLivros) {
-    //   ranking.push({ id: livroId, count: contagemLivros[livroId] });
-    // }
-    // ranking.sort(function(a, b) { return b.count - a.count; });
-    
-    // for (var i = 0; i < Math.min(3, ranking.length); i++) {
-    //   for (var j = 0; j < this.livros.length; j++) {
-    //     if (this.livros[j].id == ranking[i].id) {
-    //       console.log((i + 1) + ". " + this.livros[j].titulo + " (" + ranking[i].count + " empréstimos)");
-    //     }
-    //   }
-    // }
+    const ranking: { id: number; count: number }[] = Object.entries(contagem)
+      .map(([id, count]) => ({ id: Number(id), count: Number(count) }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 3);
 
-// Ordenar e mostrar top 3
-var ranking = [];
-
-for (var livroId in contagemLivros) {
-  ranking.push({ id: livroId, count: contagemLivros[livroId] });
-}
-
-ranking.sort(function(a, b) {
-  return b.count - a.count;
-});
-
-for (var i = 0; i < Math.min(3, ranking.length); i++) {
-  const item = ranking[i];
-  if (!item) continue; // se estiver undefined, pula
-
-  for (var j = 0; j < this.livros.length; j++) {
-    if (this.livros[j].id === item.id) {
-      console.log(`${i + 1}. ${this.livros[j].titulo} (${item.count} empréstimos)`);
+    let pos = 1;
+    for (const item of ranking) {
+      if (!item) continue;              // evita undefined no índice
+      const l = this.findLivroById(item.id);
+      if (!l) continue;                 // evita undefined no lookup
+      console.log(pos + ". " + l.titulo + " (" + item.count + " empréstimos)");
+      pos++;
     }
-  }
-}
 
-  
-    
     console.log("\n" + "=".repeat(60) + "\n");
   }
-  
-  // Problema 7: Sem validação adequada
+
+//Encapsulamento | Setter validado
   public adicionarLivro(titulo: string, autor: string, ano: number, quantidade: number, categoria: string, preco: number) {
-    var novoId = this.livros.length + 1;
-    this.livros.push({
-      id: novoId,
-      titulo: titulo,
-      autor: autor,
-      ano: ano,
-      quantidade: quantidade,
-      disponiveis: quantidade,
-      categoria: categoria,
-      preco: preco
-    });
+    if (!titulo || !autor || ano <= 0 || quantidade <= 0 || preco < 0) {
+      console.log("ERRO: Dados inválidos para adicionar livro."); return;
+    }
+    const novoId = this._livros.length ? Math.max(...this._livros.map(l => l.id)) + 1 : 1;
+    this._livros.push({ id: novoId, titulo, autor, ano, quantidade, disponiveis: quantidade, categoria, preco });
     console.log("Livro '" + titulo + "' adicionado com sucesso!");
   }
-  
-  // Problema 8: Sem validação adequada
+
+//Encapsulamento | Setter validado
   public cadastrarUsuario(nome: string, cpf: string, tipo: string, telefone: string) {
-    var novoId = this.usuarios.length + 1;
-    this.usuarios.push({
-      id: novoId,
-      nome: nome,
-      cpf: cpf,
-      tipo: tipo,
-      ativo: true,
-      multas: 0,
-      telefone: telefone
-    });
+    if (!nome || !cpf || !tipo || !telefone) {
+      console.log("ERRO: Dados inválidos para cadastrar usuário."); return;
+    }
+    const novoId = this._usuarios.length ? Math.max(...this._usuarios.map(u => u.id)) + 1 : 1;
+    this._usuarios.push({ id: novoId, nome, cpf, tipo, ativo: true, multas: 0, telefone });
     console.log("Usuário '" + nome + "' cadastrado com sucesso!");
   }
-  
-  // Problema 9: Método que mistura consulta com formatação
+
+ //Coesão busca + apresentação
   public buscarLivros(termo: string) {
     console.log("\n=== RESULTADOS DA BUSCA: '" + termo + "' ===");
-    var encontrados = 0;
-    
-    for (var i = 0; i < this.livros.length; i++) {
-      if (this.livros[i].titulo.toLowerCase().includes(termo.toLowerCase()) || 
-      this.livros[i].autor.toLowerCase().includes(termo.toLowerCase())) {
-        encontrados++;
-        console.log("\n📚 " + this.livros[i].titulo);
-        console.log("   Autor: " + this.livros[i].autor);
-        console.log("   Ano: " + this.livros[i].ano);
-        console.log("   Categoria: " + this.livros[i].categoria);
-        console.log("   Disponíveis: " + this.livros[i].disponiveis + "/" + this.livros[i].quantidade);
-        console.log("   Preço: R$" + this.livros[i].preco);
-        
-        if (this.livros[i].disponiveis > 0) {
-          console.log("   ✅ DISPONÍVEL PARA EMPRÉSTIMO");
-        } else {
-          console.log("   ❌ INDISPONÍVEL NO MOMENTO");
-        }
-      }
+    const termoMin = (termo || "").toLowerCase();
+    const lista = this._livros.filter(l =>
+      l.titulo.toLowerCase().includes(termoMin) || l.autor.toLowerCase().includes(termoMin)
+    );
+    if (lista.length === 0) { console.log("Nenhum livro encontrado."); return; }
+    for (const l of lista) {
+      console.log("\n📚 " + l.titulo);
+      console.log("   Autor: " + l.autor);
+      console.log("   Ano: " + l.ano);
+      console.log("   Categoria: " + l.categoria);
+      console.log("   Disponíveis: " + l.disponiveis + "/" + l.quantidade);
+      console.log("   Preço: R$" + l.preco);
+      console.log(l.disponiveis > 0 ? "   ✅ DISPONÍVEL PARA EMPRÉSTIMO" : "   ❌ INDISPONÍVEL NO MOMENTO");
     }
-    
-    if (encontrados == 0) {
-      console.log("Nenhum livro encontrado.");
-    } else {
-      console.log("\n" + encontrados + " livro(s) encontrado(s).");
-    }
+    console.log("\n" + lista.length + " livro(s) encontrado(s).");
   }
 }
 
-// Problema 10: Código de teste misturado com código de produção
+// ==================== “Teste” ====================
+// Mantive a ordem e a intenção do seu script, mas useei MÉTODOS PÚBLICOS
 console.log("╔═══════════════════════════════════════════╗");
 console.log("║   SISTEMA DE GERENCIAMENTO DE BIBLIOTECA  ║");
 console.log("╚═══════════════════════════════════════════╝");
@@ -459,11 +344,10 @@ console.log("\n--- TESTE 5: Devolução ---");
 biblioteca.realizarDevolucao(1);
 
 console.log("\n--- TESTE 6: Adicionar novos livro ---");
-biblioteca.livros.push({ id: 5, titulo: "Design Patterns", autor: "Gang of Four", ano: 1994, quantidade: 2, disponiveis: 2, categoria: "tecnologia", preco: 120.00 });
+// antes você dava push direto; agora usa o método público (Encapsulamento)
 biblioteca.adicionarLivro("Design Patterns", "Gang of Four", 1994, 2, "tecnologia", 120.00);
 
 console.log("\n--- TESTE 7: Cadastrar novo usuário ---");
-biblioteca.usuarios.push({ id: 4, nome: "Diego Souza", cpf: "55566677788", tipo: "estudante", ativo: true, multas: 0, telefone: "48966666666" });
 biblioteca.cadastrarUsuario("Diego Souza", "55566677788", "estudante", "48966666666");
 
 biblioteca.gerarRelatorioCompleto();
